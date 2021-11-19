@@ -1,0 +1,6 @@
+/src/
+/classes/
+*.pyc
+*.iml
+*.ipr
+*.iws

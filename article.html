@@ -1,0 +1,778 @@
+<style>
+ pre { background: #ddd;}
+</style>
+Алгоритмы Маркова
+<p>
+Давно, еще классе в 10, когда у меня не было компьютера, а была лишь книжка по кибернетике, я там прочитал про алгоритмы
+Маркова (там они, по-моему, назывались "нормальные алгорифмы Маркова"). Это что-то сродни Машине Тьюринга в том смысле, 
+что применялось в основном для анализа таких проблем как алгоритмическая разрешимось задач, практического смысла в ней, пожалуй,
+не очень много. 
+<p>
+ Но концепция довольно проста. Я даже тогда на бумаге написал несколько простых "алгоритмов".
+Суть этих самых алгоритмов Маркова в следующем. Задача для алгоритмов Маркова ставится в виде: найти алгоритм (написать программу)
+переводящую любую строку S (заданную на некотором алфавите (т.е. наборе символов, которые могут в нее входить)) из некоторого допустимого
+множества входных строк в строку f(S). Т.е., построить программу - преобразователь строк, выполняющую некое преобразование. 
+Например: перевести все буквы в строке в верхний регистр, инвертировать регистр, перевернуть строку задом-наперед (reverse), 
+и даже такую задачу: из строкового представления десятичного числа получить строковое представление числа на единицу больше (или в 2 раза больше). 
+<p>
+ Программа на языке алгоритмов Маркова - представляет из себя набор правил (Rules). Каждое правило представляет собой замену. Т.е. правило имете вид
+ <pre><code>
+ S1 -> S2
+ </code></pre>
+ где S1 и S2 некие строки. Правило представляет подстановки, последовательно применяемые ко входной строке и приводящие в итоге ее к требуемой
+ выходной строке. Порядок задания правил важен. Работает алгоритм этот следующим образом. Берется исходная строка и мы начинаем переберать правила
+с самого первого, анализируя, может ли оно быть применено (существует ли в строке S подстрока S1). Если не может -> анализируется следующее по порядку
+правило. Если не одно правило не подошло, алгоритм завершается, текущее состояние строки S является результатом работы алгоритма. 
+Если же правило применимо - совершается замена самого левого вхождения подстроки S1 на строку S2 (или, выражаясь языком питона, S = S.replace(S1, S2, 1)).
+Причем, (что очень важно!) далее правила начинают перебираться опять с начала. 
+ Еще есть так называемые <i>терминальные</i> правила, обозначающиеся точкой в конце:
+<pre><code>
+S1 -> S2.
+</code></pre>
+При срабатывании такого правила алгоритм завершается и текущее состояние строки S считается результатом работы алгоритма. 
+Кто не понял еще, как это работает могут обратиться за помощью к Википедии, а нам, я понимаю уже не терпится начать программировать на алгоритмах Маркова =).
+<p>
+Сразу оговорюсь, что я буду использовать вместо стрелки "->" знак ">".
+<p>
+Итак, решим задачу: задана строка из 0 и 1. Получить на выходе строку в которой 1-цы заменены 0-ми, а 0-и - единицами.
+<p>
+Нет ничего проще (";" в начале строки - это комментарий):
+<pre><code>
+; "*"-работник движется вдоль строки, и выполняет "работу" меняет 0 -> 1, 1 -> 0
+*0 > 1*
+*1 > 0*
+
+; уничтожение "*"-работника, алгоритм завершается.
+* > .
+
+; ставим в самом начале звездочку-"работника" (замена пустой подстроки на *)
+ > *
+</code></pre>
+
+Проследим, как это работает. Возьмем входную строку "1101". Пробуем последовательно применить подстановки. Понятно, что первые 3 не подйдут, поскольку
+в строке нет "*". Но подойдет самая последняя подстановка и звездочка будет добавлена. Получим "*1101". Затем, поседовательно применяя подстановки 
+номер 1) и 2) будем получать: 0*101, 00*01, 001*1, 0010*. Сейчас применима только 3)-я подстановка, она же и завершающая. Звездочка в конце удаляется, 
+получаем результат: 0010
+<p>
+Рассмотрим задачу посложнее: дано строковое представление числа в десятичной системе счисления, получить десятичное представление числа на 
+1-цу больше.
+
+Рассмотрим решение.
+
+<pre><code>
+; incrementing decimal
+; data:
+
+9999
+
+; algorithm:
+
+0#>1.
+1#>2.
+2#>3.
+3#>4.
+4#>5.
+5#>6.
+6#>7.
+7#>8.
+8#>9.
+
+9#>#0
+
+*#>1.
+
+*0>0*
+*1>1*
+*2>2*
+*3>3*
+*4>4*
+*5>5*
+*6>6*
+*7>7*
+*8>8*
+*9>9*
+
+*>#
+
+>*
+</code></pre>
+
+На первый взгляд может показаться немного сложно и непонятно, но на самом деле все более чем просто.
+Рассмотрим, как работает этот алгоритм. Сперва срабатывает последяя подстановка, добавляющая "*" в начало числа.
+Применяя подстановки *N > N* она передвигается к концу числа. Когда звездочка дойдет до конца числа, она будет заменена на "#". Собственно, это 
+пока было сделано ровно для того, чтоб получить ту самую # в конце числа. Теперь интересно. Решетка (#) будет выполнять роль 1-цы, которую
+мы прибавляем к числу. В самом деле, посмотрим на первые 9 подстановок (N# > {N+1}., N=0..8). Если последняя цифра числа от 0 до 8, то она 
+увеличивается на 1 и алгоритм успешно завершаетя. Интереснее, когда в конце числа 9-ка, в этом случае срабатывает 9# > #0. Фактически это
+как будто перенесение 1-цы в следующий разряд. Теперь благодаря опять-же первым 9 подстановкам на 1 пытается быть увеличенной 
+предпоследняя цифра. Если она меньше 9 опять же алгоритм завершается. 
+<p>
+Положим, что все цифры в числе - девятки. Тогда # заменяя их нулями дойдет до самого начала числа. После этого произойдет интересный финт
+ушами. Снова сработает последняя подстановка и добавит в начало *. После этого терминальная подстановка *# > 1. завершит алгоритм.
+<p>
+Вот лог работы при входном числе 9999:
+<pre><code>
+    Applying rule 22 >*
+9999 -> *9999
+
+    Applying rule 20 *9>9*
+*9999 -> 9*999
+
+    Applying rule 20 *9>9*
+9*999 -> 99*99
+
+    Applying rule 20 *9>9*
+99*99 -> 999*9
+
+    Applying rule 20 *9>9*
+999*9 -> 9999*
+
+    Applying rule 21 *>#
+9999* -> 9999#
+
+    Applying rule 9 9#>#0
+9999# -> 999#0
+
+    Applying rule 9 9#>#0
+999#0 -> 99#00
+
+    Applying rule 9 9#>#0
+99#00 -> 9#000
+
+    Applying rule 9 9#>#0
+9#000 -> #0000
+
+    Applying rule 22 >*
+#0000 -> *#0000
+
+    Applying rule 10 *#>1.
+*#0000 -> 10000
+
+   Terminating rule!
+Result : 10000
+</code></pre>
+
+Вот еще интересный случай. Умножение числа на 2. Тут уже объяснять не буду как работает, просто приведу программу и пример работы.
+<pre><code>
+; doubling decimal
+
+948
+
+; algorithm:
+
+0[0]>[0]0
+0[1]>[0]1
+
+1[0]>[0]2
+1[1]>[0]3
+
+2[0]>[0]4
+2[1]>[0]5
+
+3[0]>[0]6
+3[1]>[0]7
+
+4[0]>[0]8
+4[1]>[0]9
+
+5[0]>[1]0
+5[1]>[1]1
+
+6[0]>[1]2
+6[1]>[1]3
+
+7[0]>[1]4
+7[1]>[1]5
+
+8[0]>[1]6
+8[1]>[1]7
+
+9[0]>[1]8
+9[1]>[1]9
+
+[0]>.
+[1]>1.
+
+*0>0*
+*1>1*
+*2>2*
+*3>3*
+*4>4*
+*5>5*
+*6>6*
+*7>7*
+*8>8*
+*9>9*
+
+*>[0]
+
+>*
+</code></pre>
+
+Вывод, по которому все должно стать понятно:
+
+<pre></code>
+    Applying rule 33 >*
+948 -> *948
+
+    Applying rule 31 *9>9*
+*948 -> 9*48
+
+    Applying rule 26 *4>4*
+9*48 -> 94*8
+
+    Applying rule 30 *8>8*
+94*8 -> 948*
+
+    Applying rule 32 *>[0]
+948* -> 948[0]
+
+    Applying rule 16 8[0]>[1]6
+948[0] -> 94[1]6
+
+    Applying rule 9 4[1]>[0]9
+94[1]6 -> 9[0]96
+
+    Applying rule 18 9[0]>[1]8
+9[0]96 -> [1]896
+
+    Applying rule 21 [1]>1.
+[1]896 -> 1896
+
+   Terminating rule!
+Result : 1896
+</code></pre>
+
+Самое интересное, что реализация такой машины Маркова - сущие пустяки. Вот скрипт, который я написал пару лет назад:
+
+<pre><code>
+# file: markov.py
+COMMENT_SYMBOL = ';'
+DELIM_SYMBOL = '>'
+
+import sys
+if len(sys.argv) > 1:
+	FILE_NAME = sys.argv[1]
+else:
+	FILE_NAME = 'alg.txt'
+
+arr = [s for s in open(FILE_NAME, 'r').read().split('\n') \
+	if s.lstrip() and s.lstrip()[0] != COMMENT_SYMBOL ]
+
+DATA_STRING = arr[0]
+
+ALG = arr[1:]
+
+ALG_PAIRS = [ tuple(s.split(DELIM_SYMBOL)) for s in ALG ]
+
+# algorithm:
+_s = DATA_STRING
+
+class Exit:
+	pass
+
+while True:
+	try:
+		for i in range( len( ALG_PAIRS ) ):
+			_rule_applied = False
+			
+			pair = ALG_PAIRS[i]
+			
+			if pair[0] in _s:
+				_rule_applied = True
+				
+				_repl = pair[1]
+				_term = False
+				
+				if _repl[-1]=='.': # this is terminating rule
+					_term = True
+					_repl = _repl[0:-1]
+				
+				print '    Applying rule', i, ALG[i]
+				print _s,'->',
+				
+				_s = _s.replace(pair[0], _repl, 1)
+				
+				print _s+'\n'
+				
+				if _term:
+					print '   Terminating rule!'
+					raise Exit()
+					
+				break
+				
+		if not _rule_applied:
+			print '    No rules matched!'
+			break # no one rules matched
+			
+	except Exit:
+		break
+		
+print 'Result : '+_s 
+</code></pre>
+
+Тут охота отвлечься и сказать пару философских вещей. Данный "язык" (если можно это так назвать =)) является, думается мне, по сути своей декларативным. 
+Порядок выполнения подстановок недетерминированный и зависит от входных данных. Похожие идеи могут быть найдены в языках 
+<a href="http://en.wikipedia.org/wiki/Prolog" title="Prolog on Wikipedia">Prolog</a> и <a href="http://www.refal.net/" title="Recursive functions algorithmic language">Рефал</a>.
+Например, тут тоже присутствует так называемое "сопоставление с образцом" в виде существования подстроки.
+
+<p>
+Однако, продолжим. Не так давно мне захотелось усовершенствовать немного интерпретатор алгоритмов Маркова, в следующих направлениях:
+
+<ul>
+ <li>Ввести псевдосимволы начала "^" и конца "$" строки, знакомые тем кто разбирается в регулярных выражениях. В первом, пожалуй нет особой 
+необходимости, но вот последний позволит таким правилом
+<pre><code>
+$ > #
+</code></pre>
+сразу добавить что-нибудь (в данном случае решетку) в конец, а не так как мы ее добавляли выше
+<li>Второе, более хитрое. Позволяет делать "универсальные" правила. Словами объяснять долго, объясню на примере:
+<pre><code>
+{A=abc} > {A}{A}{A}
+</code></pre>
+Эквивалентно целым 3 правилам
+<pre><code>
+a > aaa
+b > bbb
+c > ccc
+</code></pre>
+При этом можно даже так:
+<pre><code>
+{BBB=1-3} > { int(BBB)*7 }
+</code></pre>
+что эквивалентно
+<pre><code>
+1 > 7
+2 > 14
+3 > 21
+</code></pre>
+То есть это позволяет сокращать "программы". 
+Кто не понял, как это работает, объясняю подробнее: фигурные скобки слева от ">" будут соответствовать только одному символу, из тех, что находятся внутри
+этих фигурных скобок после знака "=". При этом, если соответсвтие произошло, переменной слева от "=" будет присвоено строковое значение этого 
+символа. При совершении подстановки оно может быть раскрыто в правой части. Если быть точнее от того, что стоит в фигурных скобках в правой
+части будет взят питоновский eval. Это вообще не совсем честная операция, в том смысле что алгоритмы Марокова основаны исключительно на подстановках,
+и правильнее было бы сделать препроцессор, который "раскрывал" бы такие универсальные подстановки, генерируя нормальные программы для классической 
+машины алгоритмов Маркова. Но это оказалось выполнить немного технически сложнее, поэтому все осталось именно так как я описал.
+</ul>
+Не мудрствуя лукво, привожу исходник.
+<pre><code class="python">
+import re
+
+COMMENT_SYMBOL = ';'
+DELIM_SYMBOL = '>'
+
+class FromMatcher(object):
+    def __init__(self):
+        self.vars = []
+
+    def appendVarName(self, varname):
+        self.vars.append(varname)
+
+    def setFromReStr(self, s):
+        self.fromReStr = s
+        self.fromRe = re.compile(s)
+
+    def getFromRe(self):
+        return self.fromRe
+
+    def __str__(self):
+        return 'FromMatcher(%s)' % self.fromReStr
+
+    def getVarDict(self, mo):
+        return dict([(v, mo.group(v)) for v in self.vars])
+
+class MarkovCompiler(object):
+    FROM_VAR_PATTERN = re.compile(r'\{(?P&lt;varname>[A-Z_][A-Za-z0-9_]*?)=(?P&lt;chars>.+?)\}') # } to place first in chars group if needed
+    SPECIAL_CHARS = re.compile(r'(?&lt;!\\)([*?+\{\}\[\]\(\)])')
+    REPLACE_GROUP_RE = re.compile(r'\{([^{}]+?)\}')
+
+    @staticmethod
+    def makeRe(from_s):
+        fm = FromMatcher()
+
+        class ResultHolder:
+            def __init__(self):
+                self.result = ''
+                self.lastend = 0
+
+        rh = ResultHolder()
+
+        def processBetween(s):
+            s = MarkovCompiler.SPECIAL_CHARS.sub(r'\\\1', s)
+            return s
+
+        def subf(mo):
+            varname = mo.group('varname')
+            fm.appendVarName(varname)
+            chars = mo.group('chars')
+
+            between_s = from_s[rh.lastend:mo.start()]
+            rh.result += processBetween(between_s)
+            rh.lastend = mo.end()
+
+            rh.result += r'(?P&lt;%s>[%s])' % (varname, chars)
+
+        MarkovCompiler.FROM_VAR_PATTERN.sub(subf, from_s)
+
+        rh.result += processBetween(from_s[rh.lastend:])
+
+        fm.setFromReStr(rh.result)
+        return fm
+
+    @staticmethod
+    def expandTo(to_s, var_dict):
+        def subf(mo):
+#            print 'Evaling:', '#'+mo.group(1)+'#'
+            return str(eval(mo.group(1), None, var_dict))
+
+        return MarkovCompiler.REPLACE_GROUP_RE.sub(subf, to_s)
+
+
+class Rule(object):
+    def __init__(self, s):
+        self.terminating = False
+        self.parse(s)
+
+    def parse(self, s):
+        self._from, self._to = map(str.strip, s.split(DELIM_SYMBOL))
+
+        if self._to[-1] == '.':
+            self.terminating = True
+            self._to = self._to[:-1]
+
+        self.compile()
+
+    def compile(self):
+        self._fromMatcher = MarkovCompiler.makeRe(self._from)
+#        print 'Compiled:', self._fromMatcher
+
+    def match(self, s):
+        self._mo = self._fromMatcher.getFromRe().search(s)
+
+    def getMatch(self):
+        return self._mo
+
+    def expand(self):
+        return MarkovCompiler.expandTo(self._to, self._fromMatcher.getVarDict(self._mo))
+
+    def showVars(self):
+        d = self._fromMatcher.getVarDict(self._mo)
+        return ', '.join(['%s=%s' % (k, d[k]) for k in d])
+
+    def __str__(self):
+        return '%s: %s > %s' % (self.__class__.__name__, self._from, self._to)
+
+    def isTerminating(self):
+        return self.terminating
+
+class Algorithm(object):
+    def __init__(self, listOfStr):
+        self.rules = list(map(Rule, listOfStr))
+
+    def __str__(self):
+        return '%s(\n\t' % self.__class__.__name__ + \
+                '\n\t'.join(map(str, self.rules)) + \
+                '\n)'
+        
+    def getRules(self):
+        return self.rules
+
+class Exit:
+	pass
+
+class Processor(object):
+    def __init__(self, program=None, file=None):
+        if type(program) == str:
+            self.parse(program)
+        elif type(program) == file:
+            self.parse(program.read())
+        elif file:
+            self.parse(open(file).read())
+
+    def parse(self, _s):
+        _arr = [s.strip() for s in _s.split('\n') \
+	                            if s.lstrip() \
+	                            and s.lstrip()[0] != COMMENT_SYMBOL]
+        self.setData(_arr[0])
+        self.setAlgorithm(_arr[1:])
+
+    def setData(self, initialData):
+        self.initialData = initialData
+
+    def setAlgorithm(self, algorithm):
+        if type(algorithm) == str:
+            self.parse('_\n'+algorithm)
+            self.initialData = None
+        if type(algorithm) in (list, tuple) :
+            self.algorithm = Algorithm(algorithm)
+        elif type(algorithm) == Algorithm:
+            self.algorithm = algorithm
+
+    def process(self, debug=True):
+        _s = self.initialData
+
+        if debug: print 'Initial data:\n', _s, '\n\nAlgorithm:\n', self.algorithm
+
+        while True:
+            try:
+                _rule_applied = False
+
+                for rule in self.algorithm.getRules():
+                    rule.match(_s)
+                    if rule.getMatch():
+                        _rule_applied = True
+
+                        if debug:
+                            vars = rule.showVars()
+                            print str(rule) + ['', ', vars: ' + vars + ':'][int(bool(vars))]
+                        _s = _s[:rule.getMatch().start()] + rule.expand() + _s[rule.getMatch().end():]
+
+                        if debug: print _s, '\n'; import time; time.sleep(.05)
+                        if rule.isTerminating():
+                            if debug: print 'Terminating rule...'
+                            raise Exit()
+
+                        break    
+
+                if not _rule_applied:
+                    print 'No rule matched...'
+                    break
+
+            except Exit:
+                break
+
+        if debug: print 'Result:\n', _s        
+        return _s
+
+    def solve(self, data):
+        self.setData(data)
+        return self.process(debug=False)
+
+
+if __name__ == '__main__':
+	import sys
+	if len(sys.argv) > 1:
+		FILE_NAME = sys.argv[1]
+	else:
+		FILE_NAME = 'alg.txt'
+	Processor(file=FILE_NAME).process()
+</code></pre>
+
+Вот как будет выглядеть программа для удвоения числа для этой версии интерпретатора:
+<pre><code>
+99999
+
+{N1=0-9}[{N2=0-9}] > [{ (2*int(N1)+int(N2)) / 10 }]{ (2*int(N1)+int(N2)) % 10 }
+
+^[0] > .
+^[1] > 1.
+
+$>[0]
+</code></pre>
+Вот вывод:
+<pre><code>
+G:\!TRY\Python\markov>python markov_enhanced.py doubling_decimal2.txt
+Initial data:
+99999
+
+Algorithm:
+Algorithm(
+        Rule: {N1=0-9}[{N2=0-9}] > [{ (2*int(N1)+int(N2)) / 10 }]{ (2*int(N1)+int(N2)) % 10 }
+        Rule: ^[0] >
+        Rule: ^[1] > 1
+        Rule: $ > [0]
+)
+Rule: $ > [0]
+99999[0]
+
+Rule: {N1=0-9}[{N2=0-9}] > [{ (2*int(N1)+int(N2)) / 10 }]{ (2*int(N1)+int(N2)) % 10 }, vars: N1=9, N2=0:
+9999[1]8
+
+Rule: {N1=0-9}[{N2=0-9}] > [{ (2*int(N1)+int(N2)) / 10 }]{ (2*int(N1)+int(N2)) % 10 }, vars: N1=9, N2=1:
+999[1]98
+
+Rule: {N1=0-9}[{N2=0-9}] > [{ (2*int(N1)+int(N2)) / 10 }]{ (2*int(N1)+int(N2)) % 10 }, vars: N1=9, N2=1:
+99[1]998
+
+Rule: {N1=0-9}[{N2=0-9}] > [{ (2*int(N1)+int(N2)) / 10 }]{ (2*int(N1)+int(N2)) % 10 }, vars: N1=9, N2=1:
+9[1]9998
+
+Rule: {N1=0-9}[{N2=0-9}] > [{ (2*int(N1)+int(N2)) / 10 }]{ (2*int(N1)+int(N2)) % 10 }, vars: N1=9, N2=1:
+[1]99998
+
+Rule: ^[1] > 1
+199998
+
+Terminating rule...
+Result:
+199998
+</code></pre>
+
+Ну и наконец приведу задачку такую: определить правильность (неправильность) скобочной структуры. То есть на вход подаетя строка вида ()((()()()((((())))()())
+и требуется определить правильно ли вложены скобки (очевидно, что ")(" и "())" - неправильно). Результатом работы программы должно быть слово "right" в случае
+положительного ответа и "wrong" в противном случае.
+
+Вот собственно решение.
+<pre><code>
+()()(()(()))
+
+** > *
+()* > *
+*() > *
+(*) > *
+
+() > *
+
+
+1* > 1
+1( > 0
+1) > 0
+
+0{A=*()} > 0
+
+1$ > right.
+0$ > wrong.
+
+^ > 1
+</code></pre>
+Вывод:
+<pre><code>
+G:\!TRY\Python\markov>python markov_enhanced.py brackets.txt
+Initial data:
+()()(()(()))
+
+Algorithm:
+Algorithm(
+        Rule: ** > *
+        Rule: ()* > *
+        Rule: *() > *
+        Rule: (*) > *
+        Rule: () > *
+        Rule: 1* > 1
+        Rule: 1( > 0
+        Rule: 1) > 0
+        Rule: 0{A=*()} > 0
+        Rule: 1$ > right
+        Rule: 0$ > wrong
+        Rule: ^ > 1
+)
+Rule: () > *
+*()(()(()))
+
+Rule: *() > *
+*(()(()))
+
+Rule: () > *
+*(*(()))
+
+Rule: () > *
+*(*(*))
+
+Rule: (*) > *
+*(**)
+
+Rule: ** > *
+*(*)
+
+Rule: (*) > *
+**
+
+Rule: ** > *
+*
+
+Rule: ^ > 1
+1*
+
+Rule: 1* > 1
+1
+
+Rule: 1$ > right
+right
+
+Terminating rule...
+Result:
+right
+</code></pre>
+
+Если же на вход подать такую скобочную структуру: ()()((()(())), то получим:
+<pre><code>
+G:\!TRY\Python\markov>python markov_enhanced.py brackets.txt
+Initial data:
+()()((()(()))
+
+Algorithm:
+Algorithm(
+        Rule: ** > *
+        Rule: ()* > *
+        Rule: *() > *
+        Rule: (*) > *
+        Rule: () > *
+        Rule: 1* > 1
+        Rule: 1( > 0
+        Rule: 1) > 0
+        Rule: 0{A=*()} > 0
+        Rule: 1$ > right
+        Rule: 0$ > wrong
+        Rule: ^ > 1
+)
+Rule: () > *
+*()((()(()))
+
+Rule: *() > *
+*((()(()))
+
+Rule: () > *
+*((*(()))
+
+Rule: () > *
+*((*(*))
+
+Rule: (*) > *
+*((**)
+
+Rule: ** > *
+*((*)
+
+Rule: (*) > *
+*(*
+
+Rule: ^ > 1
+1*(*
+
+Rule: 1* > 1
+1(*
+
+Rule: 1( > 0
+0*
+
+Rule: 0{A=*()} > 0, vars: A=*:
+0
+
+Rule: 0$ > wrong
+wrong
+
+Terminating rule...
+Result:
+wrong
+</code></pre>
+
+Из этих двух примеров отчетливо виден принцип решения. В скобочной структуре все "правильные" фрагменты заменяются на звезочки, подряд-идущие звездочки
+удаляются. Если в конце останется ряд звезочек - исходная скобочная структура была правильна. Если же в ней останутся скобки -> структура скобок была неправильна.
+<p>
+Если вам показалось интересным что нибудь из этого, то предлагаю придумать какие задачи еще можно решить на этой "машине". Если хотите поломать голову,
+могу подкинуть несколько задачек:
+<p>
+<ol>
+<li> Усовершенствовать последнюю задачу для определения правильности скобочной структуры из (){}[] и символов английского алфавита между ними.
+<li> Написать алгоритм обращения строки (из символов a-zA-Z0-9) задом-наперед (reverse).
+<li> Сложение 2-х десятичных чисел, заданных строкой вида "12345+678".
+<li> Реализовать алгоритм <a href="http://www.miranda.org/~jkominek/rot13/">rot13</a>.
+</ol>
+<p>
+Задачи 2)-4) были решены мною, и решения будут опубликованы следующим постом.
+<p>
+<b>Выводы.</b> Алгоритмы Маркова представляют собой очень простую но вместе с тем интересную концепцию. Думается, что-то подобное было в древнем языке 
+<a href="http://ru.wikipedia.org/wiki/Snobol">Snobol</a> и 
+в (возможно, ошибаюсь) его современном диалекте <a href="http://snowball.tartarus.org/index.php">Snowball</a> применяемом для стеммеров при полнотекстовом поиске. 
+Пока что практическая польза такого подхода не очень велика, но, возможно, найдутся задачи, где подобный подход может показать себя с положительной стороны. 
+Возможно, стоит улучшить интерпретатор чтоб распознавались не одиночные символы, а целые регулярные выражения.
+
