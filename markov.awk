@@ -18,7 +18,7 @@ END {
   print Input, Len
   while(!stop){
     for (i=0; i<Len; i++) {
-      print "attempt: ",From[i],">",To[i],"  ",Stop[i]
+#      print "attempt: ",From[i],">",To[i],"  ",Stop[i]
       if (idx = index(Input,f = From[i])) {
         print "    Applying rule " f ">" (r=To[i])
         I2 = substr(Input,1,idx-1) r substr(Input,idx + length(f))
@@ -31,7 +31,7 @@ END {
         break
       }
     }
-    if (i==Len) {
+    if (i==Len) { # TODO check
       print "    No rule matched!"
       stop=1
     }
