@@ -1,17 +1,16 @@
 BEGIN {
-  Len--
+  Len=0
   while (getline l) {
-    print "line:"l,length(l)
-    if (l~/^;/ || l~/^[ \t\r\n]*$/) { print "skip" } # comment or empty
+    if (l~/^;/ || l~/^[ \t]*$/) {} # comment or empty
     else if (l~/>/) {
-      print "rule:"l
+#      print "rule:"l
       split(l,parts,">")
-      From[++Len] = parts[1]
+      From[Len] = parts[1]
       if ((r = parts[2]) ~ /\.$/) {
-        Stop[Len]
+        Stop[Len]=1
         r = substr(r,1,length(r)-1)
       }
-      To[Len] = r
+      To[Len++] = r
     } else Input = l
   }
 }
@@ -19,9 +18,10 @@ END {
   print Input, Len
   while(!stop){
     for (i=0; i<Len; i++) {
+      print "attempt: ",From[i],">",To[i],"  ",Stop[i]
       if (idx = index(Input,f = From[i])) {
         print "    Applying rule " f ">" (r=To[i])
-        I2 = substr(Input,1,idx) r substr(Input,idx + length(f))
+        I2 = substr(Input,1,idx-1) r substr(Input,idx + length(f))
         print Input " -> " I2
         Input = I2
         if (Stop[i]) {
