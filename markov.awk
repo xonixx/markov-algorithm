@@ -1,24 +1,22 @@
-BEGIN {
-  Len=0
-  while (getline l) {
-    if (l~/^;/ || l~/^[ \t]*$/) {} # comment or empty
-    else if (l~/>/) {
-#      print "rule:"l
-      split(l,parts,">")
-      From[Len] = parts[1]
-      if ((r = parts[2]) ~ /\.$/) {
-        Stop[Len]=1
-        r = substr(r,1,length(r)-1)
-      }
-      To[Len++] = r
-    } else Input = l
-  }
+BEGIN { Len=0 }
+{
+  if (/^;/ || /^[ \t]*$/) {} # comment or empty
+  else if (/>/) {
+    #      print "rule:"$0
+    split($0,parts,">")
+    From[Len] = parts[1]
+    if ((r = parts[2]) ~ /\.$/) {
+      Stop[Len]=1
+      r = substr(r,1,length(r)-1)
+    }
+    To[Len++] = r
+  } else Input = $0
 }
 END {
-  print Input, Len
+#  print Input, Len
   while(!stop){
     for (i=0; i<Len; i++) {
-#      print "attempt: ",From[i],">",To[i],"  ",Stop[i]
+      #      print "attempt: ",From[i],">",To[i],"  ",Stop[i]
       if (idx = index(Input,f = From[i])) {
         print "    Applying rule " f ">" (r=To[i])
         I2 = substr(Input,1,idx-1) r substr(Input,idx + length(f))
