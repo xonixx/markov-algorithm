@@ -14,6 +14,7 @@ BEGIN { Len=0 }
 }
 END {
 #  print Input, Len
+  print "Input: " Input
   while(!stop){
     for (i=0; i<Len; i++) {
       #      print "attempt: ",From[i],">",To[i],"  ",Stop[i]
